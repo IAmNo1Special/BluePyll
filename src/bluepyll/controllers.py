@@ -282,7 +282,7 @@ class BluestacksController(AdbController):
         self._is_loading: bool = False
         
         self._set_state()
-        self.open_controller()
+        self._open_controller()
         logger.debug(f"BluestacksController initialized with the following state:\n{pprint(self.__dict__)}\n")
 
     @property
