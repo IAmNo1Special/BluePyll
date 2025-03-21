@@ -152,10 +152,7 @@ class AdbController:
                     logger.debug(f"UI element {ui_img_path[0]} found at: {ui_location}")
                     ui_x_coord, ui_y_coord = pyautogui.center(ui_location)
                     return ui_x_coord, ui_y_coord
-            else:
-                logger.debug(f"UI element {ui_img_path[0]} not found after {max_tries} tries")
-                continue
-        logger.debug(f"Wasn't able to UI element(s) {[ui_img_path for ui_img_path in ui_img_paths]}")
+        logger.debug(f"Wasn't able to find UI element(s) {[ui_img_path for ui_img_path in ui_img_paths]}")
         return None
 
     def click_coords(self, coords: tuple[int, int]) -> None:
