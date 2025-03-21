@@ -19,7 +19,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/8f/73/d246034db6f3e374d
 
 [[package]]
 name = "bluepyll"
-version = "0.1.5.0"
+version = "0.1.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "adb-shell" },
@@ -29,6 +29,7 @@ dependencies = [
     { name = "psutil" },
     { name = "pyautogui" },
     { name = "pywin32" },
+    { name = "scikit-image" },
 ]
 
 [package.metadata]
@@ -40,6 +41,7 @@ requires-dist = [
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "pyautogui", specifier = ">=0.9.54" },
     { name = "pywin32", specifier = ">=310" },
+    { name = "scikit-image", specifier = ">=0.25.2" },
 ]
 
 [[package]]
