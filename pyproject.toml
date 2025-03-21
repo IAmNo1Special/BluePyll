@@ -1,6 +1,6 @@
 [project]
 name = "BluePyll"
-version = "0.1.4"
+version = "0.1.5"
 description = "A Python library designed to control BlueStacks through ADB commands, enabling seamless automation and management of Android applications on a PC."
 readme = "README.md"
 authors = [
@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "adb-shell>=0.4.4",
+    "easyocr>=1.7.2",
     "opencv-python>=4.11.0.86",
     "pillow>=11.1.0",
     "psutil>=7.0.0",
@@ -23,3 +24,4 @@ issues = "https://github.com/IAmNo1Sepcial/BluePyll/issues"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
