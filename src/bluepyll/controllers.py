@@ -16,6 +16,7 @@ from adb_shell.exceptions import TcpTimeoutException
 
 from .ui import BlueStacksUiPaths
 from .app import BluePyllApp
+from .utils import ImageTextChecker
 
 
 # Initialize logger
@@ -34,6 +35,8 @@ class AdbController:
 
         self._adb_device: AdbDeviceTcp = AdbDeviceTcp(ip, port)
         self._is_connected: bool = False
+
+        self.img_txt_checker: ImageTextChecker = ImageTextChecker()
         logger.info("AdbController initialized.")
 
     @property
@@ -341,8 +344,7 @@ class BluestacksController(AdbController):
             self._is_loading = False
             return
         while self._is_open is True and self._is_loaded is False:
-            bluestacks_loading_bar_position = self.find_ui(ui_img_paths=[UI_PATHS.bluestacks_controller_loading], max_tries=2)
-            self._is_loading = True if bluestacks_loading_bar_position else False
+            self._is_loading = self.img_txt_checker.check_text(text_to_find="starting bluestacks", image_path=UI_PATHS.bluestacks_loading_screen[0])
             if self._is_loading is True:
                 logger.debug("Bluestacks is still loading")
                 pyautogui.sleep(1.0)
