@@ -29,9 +29,3 @@ class ImageTextChecker:
         return any(text_to_find in text for text in extracted_texts)
 
 
-if __name__ == "__main__":
-    image_path = "revomon/game_ui/overworld/in-battle/batttle_screen1.png"
-    text_to_check = "run"  # Text to search for
-    checker = ImageTextChecker()
-    result = checker.check_text(text_to_check, image_path)
-    print(f"Text '{text_to_check}' found in image: {result}")
