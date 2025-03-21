@@ -344,7 +344,7 @@ class BluestacksController(AdbController):
             self._is_loading = False
             return
         while self._is_open is True and self._is_loaded is False:
-            self._is_loading = self.img_txt_checker.check_text(text_to_find="starting bluestacks", image_path=UI_PATHS.bluestacks_loading_screen[0])
+            self._is_loading = self.img_txt_checker.check_text(text_to_find="starting bluestacks", image_path=self._capture_loading_screen())
             if self._is_loading is True:
                 logger.debug("Bluestacks is still loading")
                 pyautogui.sleep(1.0)
