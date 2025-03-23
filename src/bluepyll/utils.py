@@ -1,14 +1,15 @@
 import cv2
 import easyocr
+from typing import Any
 
 class ImageTextChecker:
     def __init__(self):
         """
         Initialize the ImageTextChecker with the path to the image.
         """
-        self.reader = easyocr.Reader(lang_list=["en"], verbose=False)  # Specify the language
+        self.reader: easyocr.Reader = easyocr.Reader(lang_list=["en"], verbose=False)  # Specify the language
 
-    def check_text(self, text_to_find, image_path):
+    def check_text(self, text_to_find: str, image_path: str) -> bool:
         """
         Check if the specified text is present in the image.
 
@@ -17,18 +18,18 @@ class ImageTextChecker:
         :return: True if the text is found, False otherwise.
         """
         # Read the image using OpenCV
-        image = cv2.imread(image_path)
+        image: cv2.typing.Matlike = cv2.imread(image_path)
 
         # Use EasyOCR to do text detection
-        results = self.reader.readtext(image)
+        results: list | list[dict[str, Any]] | list[str] | list[list] = self.reader.readtext(image)
 
         # Extract the text from the results
-        extracted_texts = [result[1].lower() for result in results]
+        extracted_texts: list[str] = [result[1].lower() if isinstance(result[1], str) else result[1] for result in results]
 
         # Check if the specified text is in the extracted texts
         return any(text_to_find in text for text in extracted_texts)
 
-    def read_text(self, image_path):
+    def read_text(self, image_path: str) -> list[str]:
         """
         Read text from the image.
 
@@ -36,12 +37,12 @@ class ImageTextChecker:
         :return: List of detected texts.
         """
         # Read the image using OpenCV
-        image = cv2.imread(image_path)
+        image: cv2.typing.Matlike = cv2.imread(image_path)
 
         # Use EasyOCR to do text detection
-        results = self.reader.readtext(image)
+        results: list | list[dict[str, Any]] | list[str] | list[list] = self.reader.readtext(image)
 
         # Extract the text from the results
-        extracted_texts = [result[1].lower() for result in results]
+        extracted_texts: list[Any] = [result[1].lower() if isinstance(result[1], str) else result[1] for result in results]
 
         return extracted_texts
