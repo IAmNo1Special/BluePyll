@@ -135,7 +135,7 @@ class AdbController:
             logger.error(f"Error capturing screenshot: {e}")
             return None
 
-    def find_ui(self, ui_img_paths: list[tuple[str, float]], max_tries: int = 2) -> tuple[int, int] | None:
+    def find_ui(self, ui_img_paths: list[tuple[str, float]], max_tries: int = 2, region: tuple[int, int, int, int] | None = None) -> tuple[int, int] | None:
         logger.debug(f"Finding UI element. Max tries: {max_tries}")
         for ui_img_path in ui_img_paths:
             logger.debug(f"Processing UI image path: {ui_img_path[0]}")
@@ -145,7 +145,7 @@ class AdbController:
                     logger.debug(f"Locating UI element {ui_img_path[0]} with confidence {ui_img_path[1]}...")
                     screen_image = self._capture_loading_screen() if ui_img_path == UI_PATHS.bluestacks_controller_loading else self.capture_screenshot()
                     scaled_img: Image.Image = self.scale_img_to_screen(image_path=ui_img_path[0], screen_image=screen_image)
-                    ui_location = pyautogui.locate(needleImage=scaled_img, haystackImage=screen_image, confidence=ui_img_path[1], grayscale=True)
+                    ui_location = pyautogui.locate(needleImage=scaled_img, haystackImage=screen_image, confidence=ui_img_path[1], grayscale=True, region=region)
                 except pyautogui.ImageNotFoundException or TcpTimeoutException:
                     find_ui_retries += 1
                     logger.debug(f"UI element {ui_img_path[0]} not found. Retrying... ({find_ui_retries}/{max_tries})")
