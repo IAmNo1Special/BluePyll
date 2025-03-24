@@ -20,6 +20,9 @@ class ImageTextChecker:
         # Read the image using OpenCV
         image: cv2.typing.Matlike = cv2.imread(image_path)
 
+        # Convert image to grayscale
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
         # Use EasyOCR to do text detection
         results: list | list[dict[str, Any]] | list[str] | list[list] = self.reader.readtext(image, **kwargs)
 
@@ -38,6 +41,9 @@ class ImageTextChecker:
         """
         # Read the image using OpenCV
         image: cv2.typing.Matlike = cv2.imread(image_path)
+
+        # Convert image to grayscale
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # Use EasyOCR to do text detection
         results: list | list[dict[str, Any]] | list[str] | list[list] = self.reader.readtext(image, **kwargs)
