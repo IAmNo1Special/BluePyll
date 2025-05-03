@@ -24,7 +24,7 @@ def check_text_test():
     check_start_time = time.time()
     try:
         # Test image path
-        image_path = "src/bluepyll/assets/my_games_icon.png"
+        image_path = "src/bluepyll/assets/bluestacks_my_games_button.png"
         # Text to search for
         text_to_check = "my games"
         # Check if text is present in the image
@@ -53,7 +53,7 @@ def check_text_test():
 
     # Print result
     print(f"Text '{text_to_check}' found in image: {result}")
-    return "PASS"
+    return result
 
 def read_text_test():
     # Start timing the initialization
@@ -72,7 +72,7 @@ def read_text_test():
     check_start_time = time.time()
     try:
         # Test image path
-        image_path = "src/bluepyll/assets/my_games_icon.png"
+        image_path = "src/bluepyll/assets/bluestacks_my_games_button.png"
         # Read text from the image
         result = checker.read_text(image_path)
     except Exception as e:
@@ -99,7 +99,7 @@ def read_text_test():
 
     # Print result
     print(f"Text read from image: {result}")
-    return "PASS"
+    return result
     
 if __name__ == "__main__":
     # Run the tests
