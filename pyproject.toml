@@ -1,6 +1,6 @@
 [project]
-name = "BluePyll"
-version = "0.1.5.1"
+name = "bluepyll"
+version = "0.1.0"
 description = "A Python library designed to control BlueStacks through ADB commands, enabling seamless automation and management of Android applications on a PC."
 readme = "README.md"
 authors = [
@@ -18,9 +18,22 @@ dependencies = [
     "scikit-image>=0.25.2",
 ]
 
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Emulators",
+    "Topic :: Utilities"
+]
+
 [project.urls]
 homepage = "https://github.com/IAmNo1Sepcial/BluePyll"
 issues = "https://github.com/IAmNo1Sepcial/BluePyll/issues"
+documentation = "https://bluepyll.readthedocs.io"
 
 [build-system]
 requires = ["hatchling"]
