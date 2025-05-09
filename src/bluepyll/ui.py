@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
 
-from dataclasses import dataclass
-
 
 class UIElement:
     """

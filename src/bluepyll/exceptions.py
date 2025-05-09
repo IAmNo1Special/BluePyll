@@ -2,7 +2,6 @@
 Custom exceptions for BluePyll
 """
 
-from typing import Optional
 
 class BluePyllError(Exception):
     """
