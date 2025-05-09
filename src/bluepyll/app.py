@@ -1,54 +1,32 @@
-from .constants import AppConstants
+from enum import Enum, auto
+from .state_machine import StateMachine
 
+
+class AppState(Enum):
+    CLOSED = auto()
+    LOADING = auto()
+    OPEN = auto() 
 
 class BluePyllApp:
-    """
-    Represents an Android app running in BlueStacks.
-    
-    This class handles:
-    - App state tracking
-    - App-specific operations
-    - Package management
-    
-    Attributes:
-        app_name (str): Name of the app
-        package_name (str): Package name of the app
-        is_app_loading (bool): Current loading state of the app
-        is_app_open (bool): Current open state of the app
-    """
-    
     def __init__(self, app_name: str, package_name: str) -> None:
-        """
-        Initialize a new BluePyllApp instance.
-        
-        Args:
-            app_name (str): Name of the app
-            package_name (str): Package name of the app
-        
-        Raises:
-            ValueError: If invalid parameters are provided
-        """
-        if not app_name or not package_name:
-            raise ValueError("app_name and package_name must be non-empty strings")
+        if not app_name:
+            raise ValueError("app_name must be a non-empty string")
+        if not package_name:
+            raise ValueError("package_name must be a non-empty string")
         
         self.app_name: str = app_name
         self.package_name: str = package_name
-        self.is_app_loading: bool = False
-        self.is_app_open: bool = False
 
-    @property
-    def state(self) -> str:
-        """
-        Get the current state of the app.
-        
-        Returns:
-            str: Current state (loading, open, or closed)
-        """
-        if self.is_app_loading:
-            return AppConstants.State.LOADING
-        elif self.is_app_open:
-            return AppConstants.State.OPEN
-        return AppConstants.State.CLOSED
+        transitions = {
+            AppState.CLOSED: [AppState.LOADING],
+            AppState.LOADING: [AppState.OPEN, AppState.CLOSED],
+            AppState.OPEN: [AppState.CLOSED]
+        }
+
+        self.app_state = StateMachine(
+            current_state=AppState.CLOSED,
+            transitions=transitions
+        )
 
     def __str__(self) -> str:
         """
@@ -57,7 +35,8 @@ class BluePyllApp:
         Returns:
             str: String representation of the app
         """
-        return f"BluePyllApp(app_name={self.app_name}, package_name={self.package_name})"
+        return f"BluePyllApp(app_name={self.app_name}, package_name={self.package_name}, state={self.app_state.current_state})"
+
     
     def __eq__(self, other: object) -> bool:
         """
@@ -71,7 +50,9 @@ class BluePyllApp:
         """
         if not isinstance(other, BluePyllApp):
             return False
-        return self.app_name == other.app_name and self.package_name == other.package_name
+        return (self.app_name == other.app_name and 
+                self.package_name == other.package_name and 
+                self.app_state.current_state == other.app_state.current_state)
 
     def __hash__(self) -> int:
         """
@@ -80,13 +61,4 @@ class BluePyllApp:
         Returns:
             int: Hash value of the app
         """
-        return hash((self.app_name, self.package_name, self.is_app_loading, self.is_app_open))
-
-    def __repr__(self) -> str:
-        """
-        Return a string representation of the app.
-        
-        Returns:
-            str: String representation of the app
-        """
-        return f"BluePyllApp(app_name={self.app_name}, package_name={self.package_name})"
+        return hash((self.app_name, self.package_name, self.app_state.current_state))
