@@ -1,7 +1,45 @@
-from enum import Enum
+from enum import Enum, auto
 from dataclasses import dataclass, field
 from collections.abc import Callable
 
+
+class BluestacksState(Enum):
+    CLOSED = auto()
+    LOADING = auto()
+    READY = auto()
+    
+    @classmethod
+    def get_transitions(cls) -> dict:
+        """
+        Define valid state transitions for the BlueStacks state machine.
+        
+        Returns:
+            dict: A dictionary mapping current states to their allowed next states
+        """
+        return {
+            cls.CLOSED: [cls.LOADING],
+            cls.LOADING: [cls.CLOSED, cls.READY],
+            cls.READY: [cls.CLOSED, cls.LOADING]
+        }
+
+class AppState(Enum):
+    CLOSED = auto()
+    LOADING = auto()
+    READY = auto() 
+
+    @classmethod
+    def get_transitions(cls) -> dict:
+        """
+        Define valid state transitions for the App state machine.
+        
+        Returns:
+            dict: A dictionary mapping current states to their allowed next states
+        """
+        return {
+            cls.CLOSED: [cls.LOADING],
+            cls.LOADING: [cls.CLOSED, cls.READY],
+            cls.READY: [cls.CLOSED, cls.LOADING]
+        }
 
 @dataclass
 class StateMachine:
