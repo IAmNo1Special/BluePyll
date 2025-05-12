@@ -1,11 +1,5 @@
-from enum import Enum, auto
-from .state_machine import StateMachine
+from .state_machine import StateMachine, AppState
 
-
-class AppState(Enum):
-    CLOSED = auto()
-    LOADING = auto()
-    OPEN = auto() 
 
 class BluePyllApp:
     def __init__(self, app_name: str, package_name: str) -> None:
@@ -17,15 +11,9 @@ class BluePyllApp:
         self.app_name: str = app_name
         self.package_name: str = package_name
 
-        transitions = {
-            AppState.CLOSED: [AppState.LOADING],
-            AppState.LOADING: [AppState.OPEN, AppState.CLOSED],
-            AppState.OPEN: [AppState.CLOSED]
-        }
-
         self.app_state = StateMachine(
             current_state=AppState.CLOSED,
-            transitions=transitions
+            transitions=AppState.get_transitions()
         )
 
     def __str__(self) -> str:
