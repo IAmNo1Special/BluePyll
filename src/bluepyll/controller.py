@@ -16,7 +16,7 @@ from adb_shell.exceptions import TcpTimeoutException
 import time
 
 from .constants import BluestacksConstants
-from .state_machine import AppState, StateMachine, BluestacksState
+from .state_machine import AppLifecycleState, StateMachine, BluestacksState
 from .ui import BlueStacksUiPaths, UIElement
 from .app import BluePyllApp
 from .utils import ImageTextChecker
@@ -324,7 +324,7 @@ class BluepyllController(AdbDeviceTcp):
                     self.shell(f"monkey -p {app.package_name} -v 1", timeout_s=timeout)
                     match self.is_app_running(app):
                         case True:
-                            app.app_state.transition_to(AppState.LOADING)
+                            app.app_state.transition_to(AppLifecycleState.LOADING)
                             self.running_apps.append(app)
                             print(f"{app.app_name.title()} app opened via ADB")
                             return
@@ -394,7 +394,7 @@ class BluepyllController(AdbDeviceTcp):
                         case True:
                             time.sleep(wait_time)
                         case False:
-                            app.app_state.transition_to(AppState.CLOSED)
+                            app.app_state.transition_to(AppLifecycleState.CLOSED)
                             self.running_apps = [existing_app for existing_app in self.running_apps if existing_app != app]
                             print(f"{app.app_name.title()} app closed via ADB")
                             return

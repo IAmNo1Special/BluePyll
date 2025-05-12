@@ -22,7 +22,7 @@ class BluestacksState(Enum):
             cls.READY: [cls.CLOSED, cls.LOADING]
         }
 
-class AppState(Enum):
+class AppLifecycleState(Enum):
     CLOSED = auto()
     LOADING = auto()
     READY = auto() 

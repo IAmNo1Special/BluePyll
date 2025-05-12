@@ -1,4 +1,4 @@
-from .state_machine import StateMachine, AppState
+from .state_machine import StateMachine, AppLifecycleState
 
 
 class BluePyllApp:
@@ -12,8 +12,8 @@ class BluePyllApp:
         self.package_name: str = package_name
 
         self.app_state = StateMachine(
-            current_state=AppState.CLOSED,
-            transitions=AppState.get_transitions()
+            current_state=AppLifecycleState.CLOSED,
+            transitions=AppLifecycleState.get_transitions()
         )
 
     def __str__(self) -> str:
