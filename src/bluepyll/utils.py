@@ -1,7 +1,8 @@
 import cv2
 import easyocr
 from pathlib import Path
-from typing import List, Any
+from typing import Any
+
 
 class ImageTextChecker:
     """
@@ -46,10 +47,10 @@ class ImageTextChecker:
             image: cv2.typing.MatLike = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
             # Use EasyOCR to do text detection
-            results: List[List[Any]] = self.reader.readtext(image, **kwargs)
+            results: list[list[Any]] = self.reader.readtext(image, **kwargs)
 
             # Extract the text from the results
-            extracted_texts: List[str] = [str(result[1]).lower() for result in results]
+            extracted_texts: list[str] = [str(result[1]).lower() for result in results]
 
             # Check if the specified text is in the extracted texts
             return any(text_to_find.lower() in text for text in extracted_texts)
@@ -57,7 +58,7 @@ class ImageTextChecker:
         except Exception as e:
             raise ValueError(f"Error checking text in image: {e}")
 
-    def read_text(self, image_path: Path, **kwargs) -> List[str]:
+    def read_text(self, image_path: Path, **kwargs) -> list[str]:
         """
         Read text from the image.
         
@@ -66,7 +67,7 @@ class ImageTextChecker:
             **kwargs: Additional arguments to pass to EasyOCR
             
         Returns:
-            List[str]: List of detected texts
+            list[str]: list of detected texts
             
         Raises:
             ValueError: If the image cannot be read
@@ -82,10 +83,10 @@ class ImageTextChecker:
             image: cv2.typing.MatLike = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
             # Use EasyOCR to do text detection
-            results: List[List[Any]] = self.reader.readtext(image, **kwargs)
+            results: list[list[Any]] = self.reader.readtext(image, **kwargs)
 
             # Extract the text from the results
-            extracted_texts: List[str] = [str(result[1]).lower() for result in results]
+            extracted_texts: list[str] = [str(result[1]).lower() for result in results]
 
             return extracted_texts
 

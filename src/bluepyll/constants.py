@@ -21,29 +21,8 @@ class BluestacksConstants:
     
     # Operation timeouts
     DEFAULT_MAX_RETRIES: int = 10
-    DEFAULT_WAIT_TIME: int = 5
+    DEFAULT_WAIT_TIME: int = 1
     DEFAULT_TIMEOUT: int = 30
-    PROCESS_WAIT_TIMEOUT: int = 5
+    PROCESS_WAIT_TIMEOUT: int = 10
     APP_START_TIMEOUT: int = 60
 
-
-class AppConstants:
-    """
-    Constants for Android app configuration.
-    
-    These constants define default values and states for Android apps.
-    """
-    
-    class State:
-        """
-        App state constants.
-        
-        These constants represent the possible states of an Android app.
-        """
-        LOADING: Literal["loading"] = "loading"
-        OPEN: Literal["open"] = "open"
-        CLOSED: Literal["closed"] = "closed"
-
-    # Default app values
-    DEFAULT_PACKAGE_NAME: str = "com.example.app"
-    DEFAULT_APP_NAME: str = "Example App"

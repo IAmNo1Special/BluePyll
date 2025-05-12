@@ -1,14 +1,14 @@
 """
-Test script for BluestacksController and BluePyllApp functionality.
+Test script for BluepyllController and BluePyllApp functionality.
 """
 
 import logging
-import time
 import sys
 from pathlib import Path
 
-from bluepyll.controller import BluestacksController
+from bluepyll.controller import BluepyllController
 from bluepyll.app import BluePyllApp
+from bluepyll.state_machine import BluestacksState
 
 
 def setup_logging():
@@ -34,9 +34,8 @@ def main():
     
     try:
         # Initialize the controller and wait for Bluestacks to auto-open
-        logger.info("Initializing & opening BluestacksController...")
-        controller = BluestacksController()
-        time.sleep(5)  # Wait for Bluestacks to fully open
+        logger.info("Initializing & opening BluepyllController...")
+        controller = BluepyllController()
         logger.info("Bluestacks opened successfully")
         
         # Create the Revomon app instance
@@ -49,10 +48,8 @@ def main():
         logger.info("Starting test sequence...")
         
         # Verify Bluestacks is open
-        if not controller.is_open:
-            raise RuntimeError("Bluestacks failed to open")
-            
-        
+        if not controller.bluestacks_state.current_state == BluestacksState.READY:
+            raise RuntimeError("Bluestacks failed to be ready!")
         
         # Open Revomon
         logger.info("Opening Revomon...")
