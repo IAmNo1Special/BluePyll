@@ -52,11 +52,13 @@ BluePyll is a Python library designed to control BlueStacks through ADB commands
 ## Installation
 
 1. **Install uv:**(If not already installed)
+
     ```bash
     pip install uv
     ```
 
 2. **Create Project and Install BluePyll:**
+
     ```bash
     # Initialize a new project
     uv init bluepyll-project
