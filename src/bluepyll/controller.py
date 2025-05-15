@@ -4,6 +4,7 @@ Controller for managing the BlueStacks emulator.
 import logging
 import os
 import glob
+import io
 from pprint import pprint
 
 from PIL import Image, ImageFile, ImageGrab
@@ -62,7 +63,6 @@ class BluepyllController(AdbDeviceTcp):
             current_state=BluestacksState.CLOSED,
             transitions=BluestacksState.get_transitions()
         )
-        self.bluestacks_state.register_handler(BluestacksState.CLOSED, self.kill_bluestacks, None)
         self.bluestacks_state.register_handler(BluestacksState.LOADING, self.wait_for_load, None)
         self.bluestacks_state.register_handler(BluestacksState.READY, self.connect_adb, None)
                 
@@ -146,7 +146,7 @@ class BluepyllController(AdbDeviceTcp):
             logger.error("Could not find HD-Player.exe. Please ensure BlueStacks is installed or manually specify the filepath.")
             raise FileNotFoundError("Could not find HD-Player.exe. Please ensure BlueStacks is installed or manually specify the filepath.")
 
-    def _capture_loading_screen(self) -> str | None:
+    def _capture_loading_screen(self) -> bytes | None:
         logger.debug("Capturing loading screen...")
         hwnd: int = win32gui.FindWindow(None, "Bluestacks App Player")
         if hwnd:
@@ -159,16 +159,16 @@ class BluepyllController(AdbDeviceTcp):
                 rect: tuple[int, int, int, int] = win32gui.GetWindowRect(hwnd)
                 bluestacks_window_image: Image.Image = ImageGrab.grab(bbox=rect)
                 time.sleep(0.5)
-                try:
-                    # Save loading screen image
-                    bluestacks_window_image.save(UI_PATHS.bluestacks_loading_screen_img.path)
-                except (ValueError, OSError) as e:
-                    logger.error(f"Error saving BlueStacks loading screen image: {e}")
-                    return None
+                
+                # Convert image to bytes
+                img_byte_arr = io.BytesIO()
+                bluestacks_window_image.save(img_byte_arr, format='PNG')
+                img_byte_arr = img_byte_arr.getvalue()
+                
                 # Unpin the window from the foreground
                 win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOSIZE)
-                logger.debug(f"Loading screen captured and saved to: {UI_PATHS.bluestacks_loading_screen_img.path}")
-                return UI_PATHS.bluestacks_loading_screen_img.path
+                logger.debug("Loading screen captured as bytes")
+                return img_byte_arr
             except Exception as e:
                 logger.warning(f"Error capturing loading screen: {e}")
                 raise Exception(f"Error capturing loading screen: {e}")
@@ -417,7 +417,7 @@ class BluepyllController(AdbDeviceTcp):
                 self.shell("input keyevent 3", timeout_s=BluestacksConstants.DEFAULT_TIMEOUT)
                 logger.debug("Home screen opened via ADB")
 
-    def capture_screenshot(self, filename: str = "adb_screenshot_img.png") -> str | None:
+    def capture_screenshot(self) -> bytes | None:
         # Ensure Bluestacks is ready before trying to capture screenshot
         match self.bluestacks_state.current_state:
             case BluestacksState.CLOSED | BluestacksState.LOADING:
@@ -431,23 +431,14 @@ class BluepyllController(AdbDeviceTcp):
                     return None
                 try:
                     # Capture the screenshot
-                    self.shell(f"screencap -p /sdcard/{filename}", timeout_s=BluestacksConstants.DEFAULT_TIMEOUT)
-                    time.sleep(0.5)
+                    screenshot_bytes: bytes = self.shell(f"screencap -p", decode=False, timeout_s=BluestacksConstants.DEFAULT_TIMEOUT)
 
-                    # Pull the screenshot from the device
-                    self.pull(f"/sdcard/{filename}", UI_PATHS.adb_screenshot_img.path, read_timeout_s=BluestacksConstants.DEFAULT_TIMEOUT)
-                    time.sleep(0.5)
-
-                    # Delete the screenshot from the device
-                    self.shell(f"rm /sdcard/{filename}", timeout_s=BluestacksConstants.DEFAULT_TIMEOUT)
-                    
-                    time.sleep(0.5)
-                    return UI_PATHS.adb_screenshot_img.path
+                    return screenshot_bytes
                 except Exception as e:
                     logger.error(f"Error capturing screenshot: {e}")
                     return None
 
-    def find_ui(self, ui_elements: list[UIElement], max_tries: int = 2) -> tuple[int, int] | None:
+    def find_ui(self, ui_elements: list[UIElement], screenshot_img_bytes: bytes = None, max_tries: int = 2) -> tuple[int, int] | None:
         # Ensure Bluestacks is loading or ready before trying to find UI element
         match self.bluestacks_state.current_state:
             case BluestacksState.CLOSED :
@@ -460,10 +451,10 @@ class BluepyllController(AdbDeviceTcp):
                     find_ui_retries: int = 0
                     while (find_ui_retries < max_tries) if max_tries is not None and max_tries > 0 else True:
                         try:
-                            screen_image: str | None = self._capture_loading_screen() if ui_element.path == UI_PATHS.bluestacks_loading_img.path else self.capture_screenshot()
+                            screen_image: bytes | None = screenshot_img_bytes if screenshot_img_bytes else self._capture_loading_screen() if ui_element.path == UI_PATHS.bluestacks_loading_img.path else self.capture_screenshot()
                             if screen_image:
-                                haystack_img: Image.Image = Image.open(screen_image)
-                                scaled_img: Image.Image = self.scale_img_to_screen(image_path=ui_element.path, screen_image=screen_image)
+                                haystack_img: Image.Image = Image.open(io.BytesIO(screen_image))
+                                scaled_img: Image.Image = self.scale_img_to_screen(image_path=ui_element.path, screen_image=haystack_img)
                                 ui_location: tuple[int, int, int, int] | None = pyautogui.locate(needleImage=scaled_img, haystackImage=haystack_img, confidence=ui_element.confidence, grayscale=True, region=ui_element.region)
                                 if ui_location:
                                     logger.debug(f"UIElement {ui_element.label} found at: {ui_location}")
@@ -471,7 +462,7 @@ class BluepyllController(AdbDeviceTcp):
                                     return (ui_x_coord, ui_y_coord)
                         except pyautogui.ImageNotFoundException or TcpTimeoutException:
                             find_ui_retries += 1
-                            logger.debug(f"UIElement {ui_element.label} not found. Retrying... ({find_ui_retries + 1}/{max_tries})")
+                            logger.debug(f"UIElement {ui_element.label} not found. Retrying... ({find_ui_retries}/{max_tries})")
                             time.sleep(BluestacksConstants.DEFAULT_WAIT_TIME)
                             continue
                         
@@ -589,19 +580,29 @@ class BluepyllController(AdbDeviceTcp):
                 self.shell("input keyevent 4", timeout_s=BluestacksConstants.DEFAULT_TIMEOUT)
                 logger.debug("Esc key sent via ADB")
 
-    def scale_img_to_screen(self, image_path: str, screen_image) -> Image.Image:
-        game_screen_width, game_screen_height = Image.open(screen_image).size
+    def scale_img_to_screen(self, image_path: str, screen_image: str | Image.Image | bytes) -> Image.Image:
+        # If screen_image is bytes, convert to PIL Image
+        if isinstance(screen_image, bytes):
+            screen_image = Image.open(io.BytesIO(screen_image))
         
-        original_image: ImageFile.ImageFile = Image.open(image_path)
-        original_image_size: tuple[int, int] = original_image.size
+        # If screen_image is a string (file path), open it
+        elif isinstance(screen_image, str):
+            screen_image = Image.open(screen_image)
+        
+        # At this point, screen_image should be a PIL Image
+        game_screen_width, game_screen_height = screen_image.size
+        
+        needle_img: Image.Image = Image.open(image_path)
+
+        needle_img_size: tuple[int, int] = needle_img.size
 
         original_window_size: tuple[int, int] = self._ref_window_size
 
         ratio_width: float = game_screen_width / original_window_size[0]
         ratio_height: float = game_screen_height / original_window_size[1]
 
-        scaled_image_size: tuple[int, int] = (int(original_image_size[0] * ratio_width), int(original_image_size[1] * ratio_height))
-        scaled_image: Image.Image = original_image.resize(scaled_image_size)
+        scaled_image_size: tuple[int, int] = (int(needle_img_size[0] * ratio_width), int(needle_img_size[1] * ratio_height))
+        scaled_image: Image.Image = needle_img.resize(scaled_image_size)
         return scaled_image
 
     def connect_adb(self) -> bool:
@@ -638,7 +639,7 @@ class BluepyllController(AdbDeviceTcp):
                 logger.debug("ADB device already disconnected.")
                 return True
 
-    def check_pixel_color(self, coords: tuple[int, int], target_color: tuple[int, int, int], tolerance: int = 0) -> bool:
+    def check_pixel_color(self, coords: tuple[int, int], target_color: tuple[int, int, int], image: bytes | str, tolerance: int = 0) -> bool:
         """Check if the pixel at (x, y) in the given image matches the target color within a tolerance."""
         
         def check_color_with_tolerance(color1: tuple[int, int, int], color2: tuple[int, int, int], tolerance: int) -> bool:
@@ -646,6 +647,7 @@ class BluepyllController(AdbDeviceTcp):
             return all(abs(c1 - c2) <= tolerance for c1, c2 in zip(color1, color2))
         
         try:
+
             # Convert coordinates to integers
             coords = tuple(int(x) for x in coords)
             # Convert target color to integers
@@ -660,14 +662,19 @@ class BluepyllController(AdbDeviceTcp):
             if tolerance < 0:
                 raise ValueError("Tolerance must be a non-negative integer")
             
-            screenshot = self.capture_screenshot()
+            screenshot = image if image else self.capture_screenshot()
             if not screenshot:
                 raise ValueError("Failed to capture screenshot")
                 
-            with Image.open(screenshot) as image:
-                pixel_color = image.getpixel(coords)
-                return check_color_with_tolerance(pixel_color, target_color, tolerance)
-                
+            if isinstance(screenshot, bytes):
+                with Image.open(io.BytesIO(screenshot)) as image:
+                    pixel_color = image.getpixel(coords)
+                    return check_color_with_tolerance(pixel_color, target_color, tolerance)
+            elif isinstance(screenshot, str):
+                with Image.open(screenshot) as image:
+                    pixel_color = image.getpixel(coords)
+                    return check_color_with_tolerance(pixel_color, target_color, tolerance)
+  
         except ValueError as e:
             logger.error(f"ValueError in check_pixel_color: {e}")
             raise ValueError(f"Error checking pixel color: {e}")
@@ -685,5 +692,4 @@ class BluepyllController(AdbDeviceTcp):
             case BluestacksState.READY:
                 self.shell('input keyevent KEYCODE_APP_SWITCH', timeout_s=BluestacksConstants.DEFAULT_TIMEOUT)
                 logger.debug("Recent apps drawer successfully opened")
-    
-    
+
