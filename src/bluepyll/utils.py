@@ -1,5 +1,6 @@
 import cv2
 import easyocr
+import numpy as np
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +22,7 @@ class ImageTextChecker:
         """
         self.reader: easyocr.Reader = easyocr.Reader(lang_list=["en"], verbose=False)
 
-    def check_text(self, text_to_find: str, image_path: Path, **kwargs) -> bool:
+    def check_text(self, text_to_find: str, image_path: Path | bytes | str, **kwargs) -> bool:
         """
         Check if the specified text is present in the image.
         
@@ -38,8 +39,15 @@ class ImageTextChecker:
             TypeError: If invalid arguments are provided
         """
         try:
-            # Read the image using OpenCV
-            image: cv2.typing.MatLike = cv2.imread(str(image_path))
+            # Handle different input types
+            if isinstance(image_path, bytes):
+                # Convert bytes to numpy array
+                nparr = np.frombuffer(image_path, np.uint8)
+                image: cv2.typing.MatLike = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            else:
+                # Read the image using OpenCV
+                image: cv2.typing.MatLike = cv2.imread(str(image_path))
+
             if image is None:
                 raise ValueError(f"Could not read image from {image_path}")
 
@@ -58,12 +66,12 @@ class ImageTextChecker:
         except Exception as e:
             raise ValueError(f"Error checking text in image: {e}")
 
-    def read_text(self, image_path: Path, **kwargs) -> list[str]:
+    def read_text(self, image_path: Path | bytes | str, **kwargs) -> list[str]:
         """
         Read text from the image.
         
         Args:
-            image_path (Path): Path to the image file
+            image_path (Path | bytes | str): Path to the image file, or image bytes, or image path
             **kwargs: Additional arguments to pass to EasyOCR
             
         Returns:
@@ -74,21 +82,28 @@ class ImageTextChecker:
             TypeError: If invalid arguments are provided
         """
         try:
-            # Read the image using OpenCV
-            image: cv2.typing.MatLike = cv2.imread(str(image_path))
+            # Handle different input types
+            if isinstance(image_path, bytes):
+                # Convert bytes to numpy array
+                nparr = np.frombuffer(image_path, np.uint8)
+                image: cv2.typing.MatLike = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            else:
+                # Read the image using OpenCV
+                image: cv2.typing.MatLike = cv2.imread(str(image_path))
+            
             if image is None:
                 raise ValueError(f"Could not read image from {image_path}")
-
+    
             # Convert image to grayscale
             image: cv2.typing.MatLike = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
+    
             # Use EasyOCR to do text detection
             results: list[list[Any]] = self.reader.readtext(image, **kwargs)
-
+    
             # Extract the text from the results
             extracted_texts: list[str] = [str(result[1]).lower() for result in results]
-
+    
             return extracted_texts
-
+    
         except Exception as e:
             raise ValueError(f"Error reading text from image: {e}")
