@@ -1,6 +1,6 @@
 [project]
 name = "bluepyll"
-version = "0.0.3"
+version = "0.0.4"
 description = "A Python library designed to control BlueStacks through ADB commands, enabling seamless automation and management of Android applications on a PC."
 readme = "README.md"
 authors = [
@@ -31,8 +31,8 @@ classifiers = [
 ]
 
 [project.urls]
-homepage = "https://github.com/IAmNo1Sepcial/BluePyll"
-issues = "https://github.com/IAmNo1Sepcial/BluePyll/issues"
+homepage = "https://github.com/IAmNo1Special/BluePyll"
+issues = "https://github.com/IAmNo1Special/BluePyll/issues"
 documentation = "https://bluepyll.readthedocs.io"
 
 [build-system]
