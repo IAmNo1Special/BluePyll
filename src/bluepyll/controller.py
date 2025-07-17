@@ -321,7 +321,7 @@ class BluepyllController(AdbDeviceTcp):
                 # Wait for app to open by checking if it's running
                 start_time: float = time.time()
                 while time.time() - start_time < timeout:
-                    self.shell(f"monkey -p {app.package_name} -v 1", timeout_s=timeout)
+                    self.shell(f"monkey -p {app.package_name} -v 1", timeout_s=timeout, read_timeout_s=timeout, transport_timeout_s=timeout)
                     match self.is_app_running(app):
                         case True:
                             app.app_state.transition_to(AppLifecycleState.LOADING)
