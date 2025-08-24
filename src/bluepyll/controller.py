@@ -262,6 +262,7 @@ class BluepyllController(AdbDeviceTcp):
 
     def wait_for_load(self):
         logger.debug("Waiting for Bluestacks to load...")
+        time.sleep(3.0)
         while self.bluestacks_state.current_state == BluestacksState.LOADING:
             if self.is_bluestacks_loading():
                 logger.debug("Bluestacks is currently loading...")
@@ -320,6 +321,7 @@ class BluepyllController(AdbDeviceTcp):
                 start_time: float = time.time()
                 while time.time() - start_time < timeout:
                     self.shell(f"monkey -p {app.package_name} -v 1", timeout_s=timeout, read_timeout_s=timeout, transport_timeout_s=timeout)
+                    time.sleep(3.0)
                     match self.is_app_running(app):
                         case True:
                             app.app_state.transition_to(AppLifecycleState.LOADING)
