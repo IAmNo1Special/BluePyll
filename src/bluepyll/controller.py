@@ -302,8 +302,6 @@ class BluepyllController(AdbDeviceTcp):
                 except Exception as e:
                     logger.error(f"Error in kill_bluestacks: {e}")
                     raise ValueError(f"Failed to kill Bluestacks: {e}")
-                
-                
 
     def open_app(self, app: BluePyllApp, timeout: int = BluestacksConstants.APP_START_TIMEOUT, wait_time: int = BluestacksConstants.DEFAULT_WAIT_TIME) -> None:
         # Ensure Bluestacks is ready before trying to open app
