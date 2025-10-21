@@ -51,7 +51,7 @@ class StateMachine:
         default_factory=dict
     )
 
-    def transition_to(self, new_state: Enum) -> Enum:
+    def transition_to(self, new_state: Enum, ignore_validation: bool = False) -> Enum:
         """
         Transition to a new state with validation and optional handlers
 
@@ -59,16 +59,17 @@ class StateMachine:
             new_state (Enum): The state to transition to
 
         Raises:
-            ValueError: If the transition is not valid
+            ValueError: If the transition is not valid and ignore_validation is False
 
         Returns:
             Enum: The previous state
         """
-        # Validate transition
-        if new_state not in self.transitions.get(self.current_state, []):
-            raise ValueError(
-                f"Invalid state transition from {self.current_state} to {new_state}"
-            )
+        # Validate transition only if not ignoring validation
+        if not ignore_validation:
+            if new_state not in self.transitions.get(self.current_state, []):
+                raise ValueError(
+                    f"Invalid state transition from {self.current_state} to {new_state}"
+                )
 
         # Exit current state handler
         exit_handler = self.state_handlers.get(self.current_state, {}).get("on_exit")
