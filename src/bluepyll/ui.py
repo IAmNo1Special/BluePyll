@@ -105,7 +105,7 @@ class BlueStacksUiPaths:
         label="bluestacks_loading_img",
         ele_type="image",
         path=files("bluepyll.assets").joinpath("bluestacks_loading_img.png"),
-        confidence=0.6,
+        confidence=0.8,
         ele_txt="Starting BlueStacks",
     )
 
