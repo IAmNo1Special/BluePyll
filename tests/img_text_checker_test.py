@@ -1,4 +1,5 @@
 import time
+
 # Start timing importing the ImageTextChecker module
 import_start_time = time.time()
 
@@ -6,6 +7,7 @@ from bluepyll.utils import ImageTextChecker
 
 import_end_time = time.time()
 # End timing importing the ImageTextChecker module
+
 
 def check_text_test():
     # Start timing the initialization
@@ -16,10 +18,10 @@ def check_text_test():
     except Exception as e:
         print(f"Error initializing ImageTextChecker: {str(e)}")
         return "FAIL"
-    
+
     # End timing the initialization
     init_end_time = time.time()
-    
+
     # Start timing the check
     check_start_time = time.time()
     try:
@@ -55,6 +57,7 @@ def check_text_test():
     print(f"Text '{text_to_check}' found in image: {result}")
     return result
 
+
 def read_text_test():
     # Start timing the initialization
     init_start_time = time.time()
@@ -64,10 +67,10 @@ def read_text_test():
     except Exception as e:
         print(f"Error initializing ImageTextChecker: {str(e)}")
         return "FAIL"
-    
+
     # End timing the initialization
     init_end_time = time.time()
-    
+
     # Start timing the check
     check_start_time = time.time()
     try:
@@ -100,7 +103,8 @@ def read_text_test():
     # Print result
     print(f"Text read from image: {result}")
     return result
-    
+
+
 if __name__ == "__main__":
     # Run the tests
 
@@ -113,4 +117,3 @@ if __name__ == "__main__":
     print("Running read_text_test...")
     result = read_text_test()
     print(f"read_text_test result: {result}")
-    

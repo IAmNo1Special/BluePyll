@@ -2,11 +2,18 @@
 BluePyll - A Python library for controlling BlueStacks emulator
 """
 
-from .controller import BluepyllController
 from .app import BluePyllApp
-from .exceptions import BluePyllError, EmulatorError, AppError, StateError, ConnectionError, TimeoutError
 from .constants import BluestacksConstants
-from .state_machine import AppLifecycleState, StateMachine, BluestacksState
+from .controller import BluepyllController
+from .exceptions import (
+    AppError,
+    BluePyllError,
+    ConnectionError,
+    EmulatorError,
+    StateError,
+    TimeoutError,
+)
+from .state_machine import AppLifecycleState, BluestacksState, StateMachine
 from .ui import BlueStacksUiPaths, UIElement
 from .utils import ImageTextChecker
 
@@ -25,7 +32,7 @@ __all__ = [
     "BluestacksState",
     "BlueStacksUiPaths",
     "UIElement",
-    "ImageTextChecker"
+    "ImageTextChecker",
 ]
 
 __version__ = "0.0.5"
