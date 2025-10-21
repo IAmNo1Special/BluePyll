@@ -162,28 +162,83 @@ class BluepyllController(AdbDeviceTcp):
 
     def _autoset_filepath(self):
         logger.debug("Setting filepath...")
-        program_files_paths: list[str] = [
-            os.environ.get("ProgramFiles"),
-            os.environ.get("ProgramFiles(x86)"),
+
+        # Common installation paths for BlueStacks
+        search_paths = [
+            # Standard Program Files locations
+            os.path.join(
+                os.environ.get("ProgramFiles", ""), "BlueStacks_nxt", "HD-Player.exe"
+            ),
+            os.path.join(
+                os.environ.get("ProgramFiles(x86)", ""),
+                "BlueStacks_nxt",
+                "HD-Player.exe",
+            ),
+            # Alternative BlueStacks versions
+            os.path.join(
+                os.environ.get("ProgramFiles", ""), "BlueStacks", "HD-Player.exe"
+            ),
+            os.path.join(
+                os.environ.get("ProgramFiles(x86)", ""), "BlueStacks", "HD-Player.exe"
+            ),
+            # Common custom installation paths
+            "C:\\Program Files\\BlueStacks_nxt\\HD-Player.exe",
+            "C:\\Program Files (x86)\\BlueStacks_nxt\\HD-Player.exe",
+            "C:\\BlueStacks\\HD-Player.exe",
+            "C:\\BlueStacks_nxt\\HD-Player.exe",
+            # Check if file exists in current directory or subdirectories
+            "HD-Player.exe",
         ]
-        for path in program_files_paths:
-            if path:
-                potential_paths: list[str] = glob.glob(
-                    os.path.join(path, "BlueStacks_nxt", "HD-Player.exe")
-                )
-                self._filepath: str | None = (
-                    potential_paths[0] if potential_paths else None
-                )
-            if self._filepath is not None:
+
+        # Remove empty paths from environment variables
+        search_paths = [
+            path for path in search_paths if path and path != "HD-Player.exe"
+        ]
+
+        # Add current working directory relative paths
+        cwd = os.getcwd()
+        search_paths.extend(
+            [
+                os.path.join(cwd, "BlueStacks_nxt", "HD-Player.exe"),
+                os.path.join(cwd, "BlueStacks", "HD-Player.exe"),
+            ]
+        )
+
+        logger.debug(f"Searching for HD-Player.exe in {len(search_paths)} locations")
+
+        for potential_path in search_paths:
+            if os.path.exists(potential_path) and os.path.isfile(potential_path):
+                self._filepath = potential_path
                 logger.debug(f"HD-Player.exe filepath set to {self._filepath}.")
-                break
-        if not self._filepath:
-            logger.error(
-                "Could not find HD-Player.exe. Please ensure BlueStacks is installed or manually specify the filepath."
-            )
-            raise FileNotFoundError(
-                "Could not find HD-Player.exe. Please ensure BlueStacks is installed or manually specify the filepath."
-            )
+                return
+            else:
+                logger.debug(f"Checked path (does not exist): {potential_path}")
+
+        # If we still haven't found it, try a broader search
+        logger.debug("Performing broader search for HD-Player.exe...")
+        try:
+            for root, dirs, files in os.walk("C:\\"):
+                if "HD-Player.exe" in files:
+                    potential_path = os.path.join(root, "HD-Player.exe")
+                    if "bluestacks" in root.lower():
+                        self._filepath = potential_path
+                        logger.debug(
+                            f"HD-Player.exe found via broad search: {self._filepath}"
+                        )
+                        return
+        except Exception as e:
+            logger.debug(f"Broad search failed: {e}")
+
+        logger.error(
+            "Could not find HD-Player.exe. Please ensure BlueStacks is installed or manually specify the filepath."
+        )
+        logger.error(f"Searched paths: {search_paths}")
+        logger.error(f"Current working directory: {os.getcwd()}")
+        logger.error(f"ProgramFiles: {os.environ.get('ProgramFiles')}")
+        logger.error(f"ProgramFiles(x86): {os.environ.get('ProgramFiles(x86)')}")
+        raise FileNotFoundError(
+            "Could not find HD-Player.exe. Please ensure BlueStacks is installed or manually specify the filepath."
+        )
 
     def _capture_loading_screen(self) -> bytes | None:
         logger.debug("Capturing loading screen...")
@@ -331,7 +386,6 @@ class BluepyllController(AdbDeviceTcp):
 
     def wait_for_load(self):
         logger.debug("Waiting for Bluestacks to load...")
-        time.sleep(3.0)
         while self.bluestacks_state.current_state == BluestacksState.LOADING:
             if self.is_bluestacks_loading():
                 logger.debug("Bluestacks is currently loading...")
@@ -406,7 +460,6 @@ class BluepyllController(AdbDeviceTcp):
                         read_timeout_s=timeout,
                         transport_timeout_s=timeout,
                     )
-                    time.sleep(3.0)
                     match self.is_app_running(app):
                         case True:
                             app.app_state.transition_to(AppLifecycleState.LOADING)
