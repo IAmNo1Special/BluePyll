@@ -2,7 +2,6 @@
 Controller for managing the BlueStacks emulator.
 """
 
-import glob
 import io
 import logging
 import os
@@ -15,7 +14,7 @@ import win32con
 import win32gui
 from adb_shell.adb_device import AdbDeviceTcp
 from adb_shell.exceptions import TcpTimeoutException
-from PIL import Image, ImageFile, ImageGrab
+from PIL import Image, ImageGrab
 
 from .app import BluePyllApp
 from .constants import BluestacksConstants
@@ -605,7 +604,7 @@ class BluepyllController(AdbDeviceTcp):
                 try:
                     # Capture the screenshot
                     screenshot_bytes: bytes = self.shell(
-                        f"screencap -p",
+                        "screencap -p",
                         decode=False,
                         timeout_s=BluestacksConstants.DEFAULT_TIMEOUT,
                     )
@@ -905,7 +904,6 @@ class BluepyllController(AdbDeviceTcp):
                     case False:
                         logger.debug("ADB device disconnected.")
                         return True
-            
 
     def check_pixel_color(
         self,
