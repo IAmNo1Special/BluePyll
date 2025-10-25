@@ -2,7 +2,7 @@
 Constants for BluePyll configuration
 """
 
-from typing import Literal, Tuple
+from typing import Tuple
 
 
 class BluestacksConstants:
