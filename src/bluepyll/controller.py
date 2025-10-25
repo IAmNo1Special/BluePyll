@@ -873,7 +873,6 @@ class BluepyllController(AdbDeviceTcp):
     def connect_adb(self) -> bool:
         match self.available:
             case True:
-                logger.debug("ADB device is already connected.")
                 return True
             case False:
                 logger.debug(
@@ -891,6 +890,8 @@ class BluepyllController(AdbDeviceTcp):
 
     def disconnect_adb(self) -> bool:
         match self.available:
+            case False:
+                return True
             case True:
                 logger.debug(
                     "ADB device is connected. Attempting to disconnect ADB device..."
@@ -904,9 +905,7 @@ class BluepyllController(AdbDeviceTcp):
                     case False:
                         logger.debug("ADB device disconnected.")
                         return True
-            case False:
-                logger.debug("ADB device already disconnected.")
-                return True
+            
 
     def check_pixel_color(
         self,
