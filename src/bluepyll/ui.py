@@ -14,7 +14,7 @@ from .state_machine import BluestacksState
 logger = logging.getLogger(__name__)
 
 
-class UIElement:
+class BluePyllElement:
     """
     Represents a UI element.
 
@@ -45,10 +45,10 @@ class UIElement:
         confidence: float | None = None,
         ele_txt: str | None = None,
         pixel_color: tuple[int, int, int] | None = None,
-        controller = None,
+        controller=None,
     ) -> None:
         """
-        Initialize a UIElement.
+        Initialize a BluePyllElement.
 
         Args:
             label (str): Label of the element
@@ -61,7 +61,7 @@ class UIElement:
             confidence (float | None): Confidence of the element
             ele_txt (str | None): Text of the element
             pixel_color (tuple[int, int, int] | None): The color of the element(pixel) if 'ele_type' == 'pixel'
-            controller: The BluePyllController instance        
+            controller: The BluePyllController instance
         """
 
         self.label: str = str(label).lower()
@@ -85,9 +85,7 @@ class UIElement:
             else float(confidence) if confidence else 0.7
         )
         self.ele_txt: str | None = (
-            None
-            if self.ele_type in ["pixel"] or not ele_txt
-            else str(ele_txt).lower()
+            None if self.ele_type in ["pixel"] or not ele_txt else str(ele_txt).lower()
         )
         self.pixel_color: tuple[int, int, int] | None = (
             None
@@ -127,7 +125,7 @@ class UIElement:
         self.controller = controller
 
     def __repr__(self):
-        return f"UIElement(label={self.label}, ele_type={self.ele_type}, og_window_size={self.og_window_size}, position={self.position}, size={self.size}, path={self.path}, is_static={self.is_static}, confidence={self.confidence}, ele_txt={self.ele_txt}, pixel_color={self.pixel_color}, region={self.region}, center={self.center}, controller={self.controller})"
+        return f"BluePyllElement(label={self.label}, ele_type={self.ele_type}, og_window_size={self.og_window_size}, position={self.position}, size={self.size}, path={self.path}, is_static={self.is_static}, confidence={self.confidence}, ele_txt={self.ele_txt}, pixel_color={self.pixel_color}, region={self.region}, center={self.center}, controller={self.controller})"
 
     def scale_img_to_screen(
         self, image_path: str, screen_image: str | Image.Image | bytes
@@ -219,7 +217,7 @@ class UIElement:
     ) -> tuple[int, int] | None:
         # Ensure Bluestacks is loading or ready before trying to find UI element
         if not self.path:
-            logger.warning("Cannot find UI element - UIElement path is not set")
+            logger.warning("Cannot find UI element - BluePyllElement path is not set")
             return None
         match self.controller.bluestacks_state.current_state:
             case BluestacksState.CLOSED:
@@ -228,7 +226,7 @@ class UIElement:
             case BluestacksState.LOADING | BluestacksState.READY:
                 logger.debug(f"Finding UI element. Max retries: {max_retries}")
                 logger.debug(
-                    f"Looking for UIElement: {self.label} with confidence of {self.confidence}..."
+                    f"Looking for BluePyllElement: {self.label} with confidence of {self.confidence}..."
                 )
                 find_ui_retries: int = 0
                 while (
@@ -251,11 +249,9 @@ class UIElement:
                             haystack_img: Image.Image = Image.open(
                                 BytesIO(screen_image)
                             )
-                            scaled_img: Image.Image = (
-                                self.scale_img_to_screen(
-                                    image_path=self.path,
-                                    screen_image=haystack_img,
-                                )
+                            scaled_img: Image.Image = self.scale_img_to_screen(
+                                image_path=self.path,
+                                screen_image=haystack_img,
                             )
                             ui_location: tuple[int, int, int, int] | None = locate(
                                 needleImage=scaled_img,
@@ -266,19 +262,19 @@ class UIElement:
                             )
                             if ui_location:
                                 logger.debug(
-                                    f"UIElement {self.label} found at: {ui_location}"
+                                    f"BluePyllElement {self.label} found at: {ui_location}"
                                 )
                                 ui_x_coord, ui_y_coord = center(ui_location)
                                 return (ui_x_coord, ui_y_coord)
                     except ImageNotFoundException or TcpTimeoutException:
                         find_ui_retries += 1
                         logger.debug(
-                            f"UIElement {self.label} not found. Retrying... ({find_ui_retries}/{max_retries})"
+                            f"BluePyllElement {self.label} not found. Retrying... ({find_ui_retries}/{max_retries})"
                         )
                         sleep(BluestacksConstants.DEFAULT_WAIT_TIME)
                         continue
 
-                logger.debug(f"Wasn't able to find UIElement: {self.label}")
+                logger.debug(f"Wasn't able to find BluePyllElement: {self.label}")
                 return None
 
     def click_coord(
@@ -349,7 +345,7 @@ class UIElement:
                 return False
 
 
-class BlueStacksUiPaths:
+class BluePyllElements:
     """
     Paths to UI elements used in the application.
 
@@ -359,7 +355,7 @@ class BlueStacksUiPaths:
     def __init__(self, bluepyll_controller):
         self.bluepyll_controller = bluepyll_controller
 
-        self.bluestacks_loading_img: UIElement = UIElement(
+        self.bluestacks_loading_img: BluePyllElement = BluePyllElement(
             label="bluestacks_loading_img",
             ele_type="image",
             og_window_size=self.bluepyll_controller.ref_window_size,
@@ -369,7 +365,7 @@ class BlueStacksUiPaths:
             controller=self.bluepyll_controller,
         )
 
-        self.bluestacks_my_games_button: UIElement = UIElement(
+        self.bluestacks_my_games_button: BluePyllElement = BluePyllElement(
             label="bluestacks_my_games_buttoon",
             ele_type="button",
             og_window_size=self.bluepyll_controller.ref_window_size,
@@ -379,7 +375,7 @@ class BlueStacksUiPaths:
             controller=self.bluepyll_controller,
         )
 
-        self.bluestacks_store_search_input: UIElement = UIElement(
+        self.bluestacks_store_search_input: BluePyllElement = BluePyllElement(
             label="bluestacks_store_search_input",
             ele_type="input",
             og_window_size=self.bluepyll_controller.ref_window_size,
@@ -390,7 +386,7 @@ class BlueStacksUiPaths:
             controller=self.bluepyll_controller,
         )
 
-        self.bluestacks_store_button: UIElement = UIElement(
+        self.bluestacks_store_button: BluePyllElement = BluePyllElement(
             label="bluestacks_store_button",
             ele_type="button",
             og_window_size=self.bluepyll_controller.ref_window_size,
@@ -399,7 +395,7 @@ class BlueStacksUiPaths:
             controller=self.bluepyll_controller,
         )
 
-        self.bluestacks_playstore_search_inpput: UIElement = UIElement(
+        self.bluestacks_playstore_search_inpput: BluePyllElement = BluePyllElement(
             label="bluestacks_playstore_search_input",
             ele_type="input",
             og_window_size=self.bluepyll_controller.ref_window_size,
@@ -413,7 +409,7 @@ class BlueStacksUiPaths:
         )
 
         # Loading elements
-        self.bluestacks_loading_screen_img: UIElement = UIElement(
+        self.bluestacks_loading_screen_img: BluePyllElement = BluePyllElement(
             label="bluestacks_loading_screen_img",
             ele_type="image",
             og_window_size=self.bluepyll_controller.ref_window_size,
@@ -423,7 +419,7 @@ class BlueStacksUiPaths:
             controller=self.bluepyll_controller,
         )
 
-        self.adb_screenshot_img: UIElement = UIElement(
+        self.adb_screenshot_img: BluePyllElement = BluePyllElement(
             label="adb_screenshot_img",
             ele_type="image",
             og_window_size=self.bluepyll_controller.ref_window_size,

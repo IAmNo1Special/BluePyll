@@ -14,7 +14,7 @@ from .exceptions import (
     TimeoutError,
 )
 from .state_machine import AppLifecycleState, BluestacksState, StateMachine
-from .ui import BlueStacksUiPaths, UIElement
+from .ui import BluePyllElement, BluePyllElements
 from .utils import ImageTextChecker
 
 __all__ = [
@@ -30,8 +30,8 @@ __all__ = [
     "AppLifecycleState",
     "StateMachine",
     "BluestacksState",
-    "BlueStacksUiPaths",
-    "UIElement",
+    "BluePyllElements",
+    "BluePyllElement",
     "ImageTextChecker",
 ]
 
