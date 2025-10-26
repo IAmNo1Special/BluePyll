@@ -20,7 +20,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/8f/73/d246034db6f3e374d
 
 [[package]]
 name = "bluepyll"
-version = "0.0.10"
+version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "adb-shell" },
