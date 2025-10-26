@@ -631,12 +631,10 @@ class BluePyllController(AdbDeviceTcp):
         screenshot_img_bytes: bytes = None,
         max_tries: int = 2,
     ) -> bool:
-        for ui_element in ui_elements:
-            if ui_element.click(
-                screenshot_img_bytes=screenshot_img_bytes, max_tries=max_tries
-            ):
-                return True
-        return False
+        return any(
+            ui_element.click(screenshot_img_bytes=screenshot_img_bytes, max_tries=max_tries)
+            for ui_element in ui_elements
+        )
 
     def type_text(self, text: str) -> None:
         # Ensure Bluestacks is ready before trying to type text
