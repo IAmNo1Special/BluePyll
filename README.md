@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.13+-blue.svg)](https://python.org)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://microsoft.com/windows)
-[![PyPI Version](https://img.shields.io/badge/pypi-0.1.11-blue.svg)](https://pypi.org/project/bluepyll)
+[![PyPI Version](https://img.shields.io/badge/pypi-0.1.13-blue.svg)](https://pypi.org/project/bluepyll)
 [![Documentation](https://img.shields.io/badge/docs-readthedocs.io-green.svg)](https://bluepyll.readthedocs.io)
 
 > A powerful Python library for automating BlueStacks Android emulator through ADB commands
