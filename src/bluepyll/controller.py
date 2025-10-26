@@ -17,7 +17,7 @@ from PIL import Image, ImageGrab
 from .app import BluePyllApp
 from .constants import BluestacksConstants
 from .state_machine import AppLifecycleState, BluestacksState, StateMachine
-from .ui import BlueStacksUiPaths, UIElement
+from .ui import BluePyllElement, BluePyllElements
 from .utils import ImageTextChecker
 
 # Initialize logger
@@ -69,7 +69,7 @@ class BluePyllController(AdbDeviceTcp):
         self.bluestacks_state.register_handler(
             BluestacksState.READY, self.connect_adb, None
         )
-        self.elements: BlueStacksUiPaths = BlueStacksUiPaths(self)
+        self.elements: BluePyllElements = BluePyllElements(self)
         self._autoset_filepath()
         self.open_bluestacks()
         logger.debug(
@@ -611,7 +611,7 @@ class BluePyllController(AdbDeviceTcp):
 
     def where_elements(
         self,
-        ui_elements: list[UIElement],
+        ui_elements: list[BluePyllElement],
         screenshot_img_bytes: bytes = None,
         max_tries: int = 2,
     ) -> tuple[int, int] | None:
@@ -627,7 +627,7 @@ class BluePyllController(AdbDeviceTcp):
 
     def click_elements(
         self,
-        ui_elements: list[UIElement],
+        ui_elements: list[BluePyllElement],
         screenshot_img_bytes: bytes = None,
         max_tries: int = 2,
     ) -> bool:
