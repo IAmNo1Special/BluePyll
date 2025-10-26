@@ -184,7 +184,7 @@ class BluePyllElement:
             if tolerance < 0:
                 raise ValueError("Tolerance must be a non-negative integer")
 
-            screenshot = image if image else self.capture_screenshot()
+            screenshot = image if image else self.controller.capture_screenshot()
             if not screenshot:
                 raise ValueError("Failed to capture screenshot")
 
