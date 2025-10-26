@@ -329,7 +329,7 @@ class BluePyllElement:
                         "ADB device not connected. Skipping 'click_ui' method call."
                     )
                     return False
-                coord: tuple[int, int] | None = self.where_element(
+                coord: tuple[int, int] | None = self.where(
                     screenshot_img_bytes=screenshot_img_bytes, max_retries=max_tries
                 )
                 if not coord:
