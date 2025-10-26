@@ -272,6 +272,7 @@ class BluePyllController(AdbDeviceTcp):
                 logger.warning(f"Error capturing loading screen: {e}")
                 raise Exception(f"Error capturing loading screen: {e}")
         else:
+            logger.warning("Could not find 'Bluestacks App Player' window")
             return None
 
     def open_bluestacks(
