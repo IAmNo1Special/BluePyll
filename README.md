@@ -174,7 +174,6 @@ from pathlib import Path
 
 from bluepyll import BluePyllController, BluePyllElement
 
-
 controller: BluePyllController = BluePyllController()
 
 ui_element: BluePyllElement = BluePyllElement(
@@ -246,7 +245,7 @@ Configure these values in your code or modify `BluestacksConstants`:
 #### BlueStacks not found
 
 - Ensure BlueStacks is installed in default locations
-- Manually specify path: `controller.filepath = "C:/Program Files/BlueStacks_nxt/HD-Player.exe"`
+- Manually specify path: `controller.filepath = r"C:\Program Files\BlueStacks_nxt\HD-Player.exe"`
 
 #### ADB connection failed
 
