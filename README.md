@@ -75,7 +75,7 @@ BluePyll is a Python library designed to control BlueStacks through ADB commands
 ### Quick Start
 
 ```python
-from bluepyll.controller import BluepyllController
+from bluepyll.controller import BluePyllController
 from bluepyll.app import BluePyllApp
 from bluepyll.state_machine import BluestacksState
 
@@ -87,8 +87,8 @@ def main():
     
   try:
     # Initialize the controller and wait for Bluestacks to auto-open
-    print("Initializing & opening BluepyllController...")
-    controller = BluepyllController()
+    print("Initializing & opening BluePyllController...")
+    controller = BluePyllController()
     print("Bluestacks opened successfully")
 
     # Create the app instance

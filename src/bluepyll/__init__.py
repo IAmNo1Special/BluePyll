@@ -4,7 +4,7 @@ BluePyll - A Python library for controlling BlueStacks emulator
 
 from .app import BluePyllApp
 from .constants import BluestacksConstants
-from .controller import BluepyllController
+from .controller import BluePyllController
 from .exceptions import (
     AppError,
     BluePyllError,
@@ -18,7 +18,7 @@ from .ui import BlueStacksUiPaths, UIElement
 from .utils import ImageTextChecker
 
 __all__ = [
-    "BluepyllController",
+    "BluePyllController",
     "BluePyllApp",
     "BluePyllError",
     "EmulatorError",
