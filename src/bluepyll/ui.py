@@ -9,6 +9,7 @@ from PIL import Image
 from pyautogui import ImageNotFoundException, center, locate
 
 from .constants import BluestacksConstants
+from .exceptions import BluePyllError
 from .state_machine import BluestacksState
 
 logger = logging.getLogger(__name__)
@@ -182,15 +183,15 @@ class BluePyllElement:
             tolerance = int(tolerance)
 
             if len(coords) != 2:
-                raise ValueError("Coords must be a tuple of two values")
+                raise BluePyllError("Coords must be a tuple of two values")
             if len(target_color) != 3:
-                raise ValueError("Target color must be a tuple of three values")
+                raise BluePyllError("Target color must be a tuple of three values")
             if tolerance < 0:
-                raise ValueError("Tolerance must be a non-negative integer")
+                raise BluePyllError("Tolerance must be a non-negative integer")
 
             screenshot = image if image else self.capture_screenshot()
             if not screenshot:
-                raise ValueError("Failed to capture screenshot")
+                raise BluePyllError("Failed to capture screenshot")
 
             if isinstance(screenshot, bytes):
                 with Image.open(BytesIO(screenshot)) as image:
@@ -205,14 +206,14 @@ class BluePyllElement:
                         pixel_color, target_color, tolerance
                     )
             else:
-                raise ValueError("Image must be a bytes or str")
+                raise BluePyllError("Image must be a bytes or str")
 
         except ValueError as e:
             logger.error(f"ValueError in check_pixel_color: {e}")
-            raise ValueError(f"Error checking pixel color: {e}")
+            raise BluePyllError(f"Error checking pixel color: {e}")
         except Exception as e:
             logger.error(f"Error in check_pixel_color: {e}")
-            raise ValueError(f"Error checking pixel color: {e}")
+            raise BluePyllError(f"Error checking pixel color: {e}")
 
     def where(
         self,
@@ -330,7 +331,7 @@ class BluePyllElement:
                     )
                     return False
                 coord: tuple[int, int] | None = self.where(
-                    screenshot_img_bytes=screenshot_img_bytes, max_retries=max_tries
+                    screenshot_img_bytes=screenshot_img_bytes, max_tries=max_tries
                 )
                 if not coord:
                     logger.debug(f"UI element {self.label} not found")

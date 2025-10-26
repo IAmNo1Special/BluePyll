@@ -1,12 +1,13 @@
+from .exceptions import AppError
 from .state_machine import AppLifecycleState, StateMachine
 
 
 class BluePyllApp:
     def __init__(self, app_name: str, package_name: str) -> None:
         if not app_name:
-            raise ValueError("app_name must be a non-empty string")
+            raise AppError("app_name must be a non-empty string")
         if not package_name:
-            raise ValueError("package_name must be a non-empty string")
+            raise AppError("package_name must be a non-empty string")
 
         self.app_name: str = app_name
         self.package_name: str = package_name

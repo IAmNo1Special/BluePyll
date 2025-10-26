@@ -2,6 +2,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
+from .exceptions import StateError
+
 
 class BluestacksState(Enum):
     CLOSED = auto()
@@ -59,7 +61,7 @@ class StateMachine:
             new_state (Enum): The state to transition to
 
         Raises:
-            ValueError: If the transition is not valid and ignore_validation is False
+            StateError: If the transition is not valid and ignore_validation is False
 
         Returns:
             Enum: The previous state
@@ -67,7 +69,7 @@ class StateMachine:
         # Validate transition only if not ignoring validation
         if not ignore_validation:
             if new_state not in self.transitions.get(self.current_state, []):
-                raise ValueError(
+                raise StateError(
                     f"Invalid state transition from {self.current_state} to {new_state}"
                 )
 

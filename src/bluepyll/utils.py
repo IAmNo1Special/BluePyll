@@ -5,6 +5,8 @@ import cv2
 import easyocr
 import numpy as np
 
+from .exceptions import BluePyllError
+
 
 class ImageTextChecker:
     """
@@ -38,7 +40,7 @@ class ImageTextChecker:
             bool: True if the text is found, False otherwise
 
         Raises:
-            ValueError: If the image cannot be read
+            BluePyllError: If the image cannot be read
             TypeError: If invalid arguments are provided
         """
         try:
@@ -52,7 +54,7 @@ class ImageTextChecker:
                 image: cv2.typing.MatLike = cv2.imread(str(image_path))
 
             if image is None:
-                raise ValueError(f"Could not read image from {image_path}")
+                raise BluePyllError(f"Could not read image from {image_path}")
 
             # Convert image to grayscale
             image: cv2.typing.MatLike = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -67,7 +69,7 @@ class ImageTextChecker:
             return any(text_to_find.lower() in text for text in extracted_texts)
 
         except Exception as e:
-            raise ValueError(f"Error checking text in image: {e}")
+            raise BluePyllError(f"Error checking text in image: {e}")
 
     def read_text(self, image_path: Path | bytes | str, **kwargs) -> list[str]:
         """
@@ -81,7 +83,7 @@ class ImageTextChecker:
             list[str]: list of detected texts
 
         Raises:
-            ValueError: If the image cannot be read
+            BluePyllError: If the image cannot be read
             TypeError: If invalid arguments are provided
         """
         try:
@@ -95,7 +97,7 @@ class ImageTextChecker:
                 image: cv2.typing.MatLike = cv2.imread(str(image_path))
 
             if image is None:
-                raise ValueError(f"Could not read image from {image_path}")
+                raise BluePyllError(f"Could not read image from {image_path}")
 
             # Convert image to grayscale
             image: cv2.typing.MatLike = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -109,4 +111,4 @@ class ImageTextChecker:
             return extracted_texts
 
         except Exception as e:
-            raise ValueError(f"Error reading text from image: {e}")
+            raise BluePyllError(f"Error reading text from image: {e}")

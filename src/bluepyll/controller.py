@@ -1,21 +1,4 @@
-"""
-Controller for managing the BlueStacks emulator.
-"""
-
-import io
-import logging
-import os
-import time
-from pprint import pprint
-
-import psutil
-import win32con
-import win32gui
-from adb_shell.adb_device import AdbDeviceTcp
-from PIL import Image, ImageGrab
-
-from .app import BluePyllApp
-from .constants import BluestacksConstants
+from .exceptions import BluePyllError, EmulatorError, ConnectionError, TimeoutError
 from .state_machine import AppLifecycleState, BluestacksState, StateMachine
 from .ui import BluePyllElement, BluePyllElements
 from .utils import ImageTextChecker
@@ -83,7 +66,7 @@ class BluePyllController(AdbDeviceTcp):
                 value: int = int(value)
             except ValueError as e:
                 logger.error(f"ValueError in {param_name}: {e}")
-                raise ValueError(f"Error in {param_name}: {e}")
+                raise BluePyllError(f"Error in {param_name}: {e}")
         return value
 
     @property
@@ -100,12 +83,12 @@ class BluePyllController(AdbDeviceTcp):
                     logger.warning(
                         "ValueError while trying to set BluePyllController 'ref_window_size': Provided width must be positive integers!"
                     )
-                    raise ValueError("Provided width must be positive integers")
+                    raise BluePyllError("Provided width must be positive integers")
             else:
                 logger.warning(
                     "ValueError while trying to set BluePyllController 'ref_window_size': Provided width must be an integer or the string representation of an integer!"
                 )
-                raise ValueError(
+                raise BluePyllError(
                     "Provided width must be integer or the string representation of an integer!"
                 )
 
@@ -116,12 +99,12 @@ class BluePyllController(AdbDeviceTcp):
                     logger.warning(
                         "ValueError while trying to set BluePyllController 'ref_window_size': Provided height must be positive integers!"
                     )
-                    raise ValueError("Provided height must be positive integers")
+                    raise BluePyllError("Provided height must be positive integers")
             else:
                 logger.warning(
                     "ValueError while trying to set BluePyllController 'ref_window_size': Provided height must be an integer or the string representation of an integer!"
                 )
-                raise ValueError(
+                raise BluePyllError(
                     "Provided height must be integer or the string representation of an integer!"
                 )
 
@@ -137,20 +120,20 @@ class BluePyllController(AdbDeviceTcp):
         """
         If the provided filepath is a string and it exist,
         sets the filepath to the BlueStacks Emulator.
-        Otherwise, returns a ValueError
+        Otherwise, raises an EmulatorError
         """
 
         if not isinstance(filepath, str):
             logger.warning(
                 "ValueError while trying to set BluePyllController 'filepath': Provided filepath must be a string!"
             )
-            raise ValueError("Provided filepath must be a string")
+            raise EmulatorError("Provided filepath must be a string")
 
         if not os.path.exists(filepath):
             logger.warning(
                 "ValueError while trying to set BluePyllController 'filepath': Provided filepath does not exist!"
             )
-            raise ValueError("Provided filepath does not exist")
+            raise EmulatorError("Provided filepath does not exist")
 
         self._filepath: str = filepath
 
@@ -270,7 +253,7 @@ class BluePyllController(AdbDeviceTcp):
                 return img_byte_arr
             except Exception as e:
                 logger.warning(f"Error capturing loading screen: {e}")
-                raise Exception(f"Error capturing loading screen: {e}")
+                raise EmulatorError(f"Error capturing loading screen: {e}")
         else:
             logger.warning("Could not find 'Bluestacks App Player' window")
             return None
@@ -293,7 +276,7 @@ class BluePyllController(AdbDeviceTcp):
                     os.startfile(self._filepath)
                 except Exception as e:
                     logger.error(f"Failed to start Bluestacks: {e}")
-                    raise ValueError(f"Failed to start Bluestacks: {e}")
+                    raise EmulatorError(f"Failed to start Bluestacks: {e}")
 
                 start_time: float = time.time()
 
@@ -309,7 +292,7 @@ class BluePyllController(AdbDeviceTcp):
 
                     if time.time() - start_time > timeout_s:
                         logger.error("Timeout waiting for Bluestacks window to appear")
-                        raise Exception(
+                        raise TimeoutError(
                             "Timeout waiting for Bluestacks window to appear"
                         )
 
@@ -321,7 +304,7 @@ class BluePyllController(AdbDeviceTcp):
                 logger.error(
                     f"Failed to find Bluestacks window after all attempts {attempt + 1}/{max_retries}"
                 )
-                raise Exception(
+                raise TimeoutError(
                     f"Failed to find Bluestacks window after all attempts {attempt + 1}/{max_retries}"
                 )
             case BluestacksState.LOADING:
@@ -420,11 +403,11 @@ class BluePyllController(AdbDeviceTcp):
                                 logger.info("Bluestacks controller killed.")
                                 return True
                             else:
-                                raise ValueError("Failed to disconnect ADB device.")
+                                raise ConnectionError("Failed to disconnect ADB device.")
                     return False
                 except Exception as e:
                     logger.error(f"Error in kill_bluestacks: {e}")
-                    raise ValueError(f"Failed to kill Bluestacks: {e}")
+                    raise EmulatorError(f"Failed to kill Bluestacks: {e}")
 
     def open_app(
         self,
@@ -459,7 +442,7 @@ class BluePyllController(AdbDeviceTcp):
                         case True:
                             app.app_state.transition_to(AppLifecycleState.LOADING)
                             self.running_apps.append(app)
-                            print(f"{app.app_name.title()} app opened via ADB")
+                            logger.info(f"{app.app_name.title()} app opened via ADB")
                             return
                         case False:
                             time.sleep(wait_time)
@@ -556,7 +539,7 @@ class BluePyllController(AdbDeviceTcp):
                                 for existing_app in self.running_apps
                                 if existing_app != app
                             ]
-                            print(f"{app.app_name.title()} app closed via ADB")
+                            logger.info(f"{app.app_name.title()} app closed via ADB")
                             return
                 # If app is still running after timeout, raise error
                 logger.warning(
