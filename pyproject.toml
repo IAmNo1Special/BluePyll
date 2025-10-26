@@ -39,3 +39,9 @@ documentation = "https://bluepyll.readthedocs.io"
 requires = ["uv_build>=0.8.8,<0.9.0"]
 build-backend = "uv_build"
 
+[dependency-groups]
+dev = [
+    "black>=25.9.0",
+    "isort>=7.0.0",
+]
+
