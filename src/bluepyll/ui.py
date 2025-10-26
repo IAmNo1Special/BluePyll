@@ -157,6 +157,10 @@ class BluePyllElement:
         scaled_image: Image.Image = needle_img.resize(scaled_image_size)
         return scaled_image
 
+    def capture_screenshot(self):
+        """Captures a screenshot using the controller."""
+        return self.controller.capture_screenshot()
+
     def check_pixel_color(
         self,
         target_color: tuple[int, int, int],
@@ -242,7 +246,7 @@ class BluePyllElement:
                                 self.controller._capture_loading_screen()
                                 if self.path
                                 == self.controller.elements.bluestacks_loading_img.path
-                                else self.controller.capture_screenshot()
+                                else self.capture_screenshot()
                             )
                         )
                         if screen_image:
