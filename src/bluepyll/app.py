@@ -3,9 +3,9 @@ from .state_machine import AppLifecycleState, StateMachine
 
 class BluePyllApp:
     def __init__(self, app_name: str, package_name: str) -> None:
-        if not app_name:
+        if not app_name or not app_name.strip():
             raise ValueError("app_name must be a non-empty string")
-        if not package_name:
+        if not package_name or not package_name.strip():
             raise ValueError("package_name must be a non-empty string")
 
         self.app_name: str = app_name

@@ -18,6 +18,7 @@ BluePyll enables seamless automation and management of Android applications on W
 - [📦 Prerequisites](#-prerequisites)
 - [🚀 Installation](#-installation)
 - [🎯 Quick Start](#-quick-start)
+- [🧪 Testing](#-testing)
 - [📖 Usage Examples](#-usage-examples)
 - [⚙️ Configuration](#️-configuration)
 - [🔧 Troubleshooting](#-troubleshooting)
@@ -126,6 +127,123 @@ if controller.is_app_running(app):
 # Clean up
 controller.kill_bluestacks()
 ```
+
+## 🧪 Testing
+
+BluePyll comes with a comprehensive test suite to ensure reliability and maintainability. All tests are written using pytest and include extensive mocking for reliable unit testing.
+
+### 🏃‍♂️ Running Tests
+
+#### Quick Test Run
+
+```bash
+# Run all tests
+uv run pytest tests/
+
+# Run with verbose output
+uv run pytest tests/ -v
+
+# Run with coverage report
+uv run pytest tests/ --cov=bluepyll --cov-report=term-missing --cov-report=html
+
+# Run specific test module
+uv run pytest tests/test_controller.py -v
+```
+
+#### Comprehensive Test Suite
+
+```bash
+# Run the complete test suite with coverage and quality checks
+python run_tests.py
+
+# Using make (if available)
+make test          # Run basic tests
+make test-all      # Run all tests with coverage
+make coverage      # Generate coverage report
+```
+
+### 📊 Test Coverage
+
+The test suite covers all major components:
+
+- **✅ Exception Handling** (`test_exceptions.py`) - Custom exception classes
+- **✅ Constants** (`test_constants.py`) - Configuration constants
+- **✅ State Management** (`test_state_machine.py`) - Finite state machines
+- **✅ App Management** (`test_app.py`) - Android app lifecycle
+- **✅ Utilities** (`test_utils.py`) - Image processing and OCR
+- **✅ UI Components** (`test_ui.py`) - UI element detection and interaction
+- **✅ Controller** (`test_controller.py`) - Main emulator control logic
+
+### 🧪 Test Structure
+
+Each test module follows these principles:
+
+- **Unit Tests**: Isolated testing of individual components
+- **Mocking**: Extensive use of mocks for external dependencies (ADB, file system, etc.)
+- **Edge Cases**: Comprehensive testing of error conditions and edge cases
+- **Integration**: Proper testing of component interactions
+- **Coverage**: Minimum 80% code coverage requirement
+
+### 🛠️ Development Testing
+
+#### Adding New Tests
+
+```python
+# Example test structure
+import pytest
+from bluepyll.your_module import YourClass
+
+class TestYourClass:
+    """Test cases for YourClass."""
+
+    @pytest.fixture
+    def sample_instance(self):
+        """Create a sample instance for testing."""
+        return YourClass()
+
+    def test_initialization(self, sample_instance):
+        """Test proper initialization."""
+        assert sample_instance is not None
+
+    def test_method_behavior(self, sample_instance):
+        """Test method behavior with mocking."""
+        with patch('your_module.external_dependency') as mock_dep:
+            result = sample_instance.your_method()
+            assert result == expected_value
+```
+
+#### Test Configuration
+
+- **pytest.ini**: Main test configuration with coverage settings
+- **tox.ini**: Multi-environment testing (Python 3.8-3.13)
+- **Makefile**: Convenient test commands and shortcuts
+
+### 🎯 Testing Features
+
+- **Mock External Dependencies**: ADB, file system, network operations
+- **State Machine Testing**: Comprehensive state transition validation
+- **Error Condition Testing**: All exception paths covered
+- **Performance Testing**: Timing-sensitive operations tested
+- **Integration Testing**: Component interaction validation
+
+### 📈 Coverage Reports
+
+After running tests with coverage, view detailed reports:
+
+```bash
+# Generate HTML coverage report
+uv run pytest tests/ --cov=bluepyll --cov-report=html
+
+# View report in browser
+open htmlcov/index.html
+```
+
+The coverage report shows:
+
+- Line-by-line coverage analysis
+- Missing line identification
+- Branch coverage information
+- HTML reports for easy navigation
 
 ## 📖 Usage Examples
 
