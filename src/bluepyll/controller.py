@@ -9,11 +9,9 @@ import time
 from pprint import pprint
 
 import psutil
-import pyautogui
 import win32con
 import win32gui
 from adb_shell.adb_device import AdbDeviceTcp
-from adb_shell.exceptions import TcpTimeoutException
 from PIL import Image, ImageGrab
 
 from .app import BluePyllApp
@@ -24,9 +22,6 @@ from .utils import ImageTextChecker
 
 # Initialize logger
 logger = logging.getLogger(__name__)
-
-# Initialize paths for BlueStacks UI elements
-UI_PATHS: BlueStacksUiPaths = BlueStacksUiPaths()
 
 
 def log_property_setter(func):
@@ -74,11 +69,11 @@ class BluepyllController(AdbDeviceTcp):
         self.bluestacks_state.register_handler(
             BluestacksState.READY, self.connect_adb, None
         )
-
+        self.elements: BlueStacksUiPaths = BlueStacksUiPaths(self)
         self._autoset_filepath()
         self.open_bluestacks()
         logger.debug(
-            f"BluepyllController initialized with the following state:\n{pprint(self.__dict__)}\n"
+            f"BluepyllController initialized with the following state:\n{pprint(self.bluestacks_state)}\n"
         )
 
     def _validate_and_convert_int(self, value: int | str, param_name: str) -> int:
@@ -240,7 +235,8 @@ class BluepyllController(AdbDeviceTcp):
         )
 
     def _capture_loading_screen(self) -> bytes | None:
-        logger.debug("Capturing loading screen...")
+        """Capture the loading screen of BlueStacks."""
+        time.sleep(1.0)
         hwnd: int = win32gui.FindWindow(None, "Bluestacks App Player")
         if hwnd:
             try:
@@ -276,7 +272,6 @@ class BluepyllController(AdbDeviceTcp):
                 logger.warning(f"Error capturing loading screen: {e}")
                 raise Exception(f"Error capturing loading screen: {e}")
         else:
-            logger.warning("Could not find Bluestacks window")
             return None
 
     def open_bluestacks(
@@ -357,9 +352,7 @@ class BluepyllController(AdbDeviceTcp):
             bool: Whether the emulator is loading.
         """
 
-        loading_screen: tuple[int, int] | None = self.find_ui(
-            [UI_PATHS.bluestacks_loading_img]
-        )
+        loading_screen: tuple[int, int] | None = self.elements.bluestacks_loading_img.where()
         match isinstance(loading_screen, tuple):
             case True:
                 match self.bluestacks_state.current_state:
@@ -614,173 +607,32 @@ class BluepyllController(AdbDeviceTcp):
                     logger.error(f"Error capturing screenshot: {e}")
                     return None
 
-    def find_ui(
+    def where_elements(
         self,
         ui_elements: list[UIElement],
         screenshot_img_bytes: bytes = None,
         max_tries: int = 2,
     ) -> tuple[int, int] | None:
-        # Ensure Bluestacks is loading or ready before trying to find UI element
-        match self.bluestacks_state.current_state:
-            case BluestacksState.CLOSED:
-                logger.warning(
-                    "Cannot find UI element - Bluestacks is not loading or ready"
-                )
-                return
-            case BluestacksState.LOADING | BluestacksState.READY:
-                logger.debug(f"Finding UI element. Max tries: {max_tries}")
-                for ui_element in ui_elements:
-                    logger.debug(
-                        f"Looking for UIElement: {ui_element.label} with confidence of {ui_element.confidence}..."
-                    )
-                    find_ui_retries: int = 0
-                    while (
-                        (find_ui_retries < max_tries)
-                        if max_tries is not None and max_tries > 0
-                        else True
-                    ):
-                        try:
-                            screen_image: bytes | None = (
-                                screenshot_img_bytes
-                                if screenshot_img_bytes
-                                else (
-                                    self._capture_loading_screen()
-                                    if ui_element.path
-                                    == UI_PATHS.bluestacks_loading_img.path
-                                    else self.capture_screenshot()
-                                )
-                            )
-                            if screen_image:
-                                haystack_img: Image.Image = Image.open(
-                                    io.BytesIO(screen_image)
-                                )
-                                scaled_img: Image.Image = self.scale_img_to_screen(
-                                    image_path=ui_element.path,
-                                    screen_image=haystack_img,
-                                )
-                                ui_location: tuple[int, int, int, int] | None = (
-                                    pyautogui.locate(
-                                        needleImage=scaled_img,
-                                        haystackImage=haystack_img,
-                                        confidence=ui_element.confidence,
-                                        grayscale=True,
-                                        region=ui_element.region,
-                                    )
-                                )
-                                if ui_location:
-                                    logger.debug(
-                                        f"UIElement {ui_element.label} found at: {ui_location}"
-                                    )
-                                    ui_x_coord, ui_y_coord = pyautogui.center(
-                                        ui_location
-                                    )
-                                    return (ui_x_coord, ui_y_coord)
-                        except pyautogui.ImageNotFoundException or TcpTimeoutException:
-                            find_ui_retries += 1
-                            logger.debug(
-                                f"UIElement {ui_element.label} not found. Retrying... ({find_ui_retries}/{max_tries})"
-                            )
-                            time.sleep(BluestacksConstants.DEFAULT_WAIT_TIME)
-                            continue
+        coord: tuple[int, int] | None = None
+        for ui_element in ui_elements:
+            coord = ui_element.where(
+                bluepyll_controller=self,
+                screenshot_img_bytes=screenshot_img_bytes,
+                max_retries=max_tries,
+            )
+            if coord:
+                return coord
+        
 
-                logger.debug(
-                    f"Wasn't able to find UIElement(s) {[ui_element.label for ui_element in ui_elements]}"
-                )
-                return None
-
-    def click_coords(self, coords: tuple[int, int]) -> None:
-        # Ensure Bluestacks is ready before trying to click coords
-        match self.bluestacks_state.current_state:
-            case BluestacksState.CLOSED | BluestacksState.LOADING:
-                logger.warning("Cannot click coords - Bluestacks is not ready")
-                return
-            case BluestacksState.READY:
-                is_connected = self.connect_adb()
-                if not is_connected:
-                    logger.warning(
-                        "ADB device not connected. Skipping 'click_coords' method call."
-                    )
-                    return
-                # Send the click using ADB
-                self.shell(
-                    f"input tap {coords[0]} {coords[1]}",
-                    timeout_s=BluestacksConstants.DEFAULT_TIMEOUT,
-                )
-                logger.debug(
-                    f"Click event sent via ADB at coords x={coords[0]}, y={coords[1]}"
-                )
-
-    def double_click_coords(self, coords: tuple[int, int]) -> None:
-        # Ensure Bluestacks is ready before trying to double click coords
-        match self.bluestacks_state.current_state:
-            case BluestacksState.CLOSED | BluestacksState.LOADING:
-                logger.warning("Cannot double click coords - Bluestacks is not ready")
-                return
-            case BluestacksState.READY:
-                is_connected = self.connect_adb()
-                if not is_connected:
-                    logger.warning(
-                        "ADB device not connected. Skipping 'double_click_coords' method call."
-                    )
-                    return
-                # Send the double click using ADB
-                self.shell(
-                    f"input tap {coords[0]} {coords[1]} && input tap {coords[0]} {coords[1]}",
-                    timeout_s=BluestacksConstants.DEFAULT_TIMEOUT,
-                )
-                logger.debug(
-                    f"Double click event sent via ADB at coords x={coords[0]}, y={coords[1]}"
-                )
-
-    def click_ui(self, ui_elements: list[UIElement], max_tries: int = 2) -> None:
-        # Ensure Bluestacks is ready before trying to click ui
-        match self.bluestacks_state.current_state:
-            case BluestacksState.CLOSED | BluestacksState.LOADING:
-                logger.warning("Cannot click coords - Bluestacks is not ready")
-                return
-            case BluestacksState.READY:
-                is_connected = self.connect_adb()
-                if not is_connected:
-                    logger.warning(
-                        "ADB device not connected. Skipping 'click_ui' method call."
-                    )
-                    return
-                coords: tuple[int, int] | None = self.find_ui(
-                    ui_elements=ui_elements, max_tries=max_tries
-                )
-                if coords:
-                    self.click_coords(coords)
-                    logger.debug(
-                        f"Click event sent via ADB at coords x={coords[0]}, y={coords[1]}"
-                    )
-                else:
-                    logger.debug(
-                        f"UI element(s) {[ui_element.label for ui_element in ui_elements]} not found"
-                    )
-
-    def double_click_ui(self, ui_elements: list[UIElement], max_tries: int = 2) -> None:
-        # Ensure Bluestacks is ready before trying to double click ui
-        match self.bluestacks_state.current_state:
-            case BluestacksState.CLOSED | BluestacksState.LOADING:
-                logger.warning("Cannot double click coords - Bluestacks is not ready")
-                return
-            case BluestacksState.READY:
-                is_connected = self.connect_adb()
-                if not is_connected:
-                    logger.warning(
-                        "ADB device not connected. Skipping double_click_ui method call."
-                    )
-                    return
-                coords: tuple[int, int] | None = self.find_ui(
-                    ui_elements=ui_elements, max_tries=max_tries
-                )
-                if coords:
-                    self.double_click_coords(coords)
-                    logger.debug(
-                        f"Double click event sent via ADB at coords x={coords[0]}, y={coords[1]}"
-                    )
-                else:
-                    logger.debug("UI element(s) not found")
+    def click_elements(
+        self,
+        ui_elements: list[UIElement],
+        screenshot_img_bytes: bytes = None,
+        max_tries: int = 2,
+    ) -> bool:
+        for ui_element in ui_elements:
+            clicked = ui_element.click()
+        return clicked
 
     def type_text(self, text: str) -> None:
         # Ensure Bluestacks is ready before trying to type text
@@ -839,36 +691,6 @@ class BluepyllController(AdbDeviceTcp):
                 )
                 logger.debug("Esc key sent via ADB")
 
-    def scale_img_to_screen(
-        self, image_path: str, screen_image: str | Image.Image | bytes
-    ) -> Image.Image:
-        # If screen_image is bytes, convert to PIL Image
-        if isinstance(screen_image, bytes):
-            screen_image = Image.open(io.BytesIO(screen_image))
-
-        # If screen_image is a string (file path), open it
-        elif isinstance(screen_image, str):
-            screen_image = Image.open(screen_image)
-
-        # At this point, screen_image should be a PIL Image
-        game_screen_width, game_screen_height = screen_image.size
-
-        needle_img: Image.Image = Image.open(image_path)
-
-        needle_img_size: tuple[int, int] = needle_img.size
-
-        original_window_size: tuple[int, int] = self._ref_window_size
-
-        ratio_width: float = game_screen_width / original_window_size[0]
-        ratio_height: float = game_screen_height / original_window_size[1]
-
-        scaled_image_size: tuple[int, int] = (
-            int(needle_img_size[0] * ratio_width),
-            int(needle_img_size[1] * ratio_height),
-        )
-        scaled_image: Image.Image = needle_img.resize(scaled_image_size)
-        return scaled_image
-
     def connect_adb(self) -> bool:
         match self.available:
             case True:
@@ -904,61 +726,6 @@ class BluepyllController(AdbDeviceTcp):
                     case False:
                         logger.debug("ADB device disconnected.")
                         return True
-
-    def check_pixel_color(
-        self,
-        coords: tuple[int, int],
-        target_color: tuple[int, int, int],
-        image: bytes | str,
-        tolerance: int = 0,
-    ) -> bool:
-        """Check if the pixel at (x, y) in the given image matches the target color within a tolerance."""
-
-        def check_color_with_tolerance(
-            color1: tuple[int, int, int], color2: tuple[int, int, int], tolerance: int
-        ) -> bool:
-            """Check if two colors are within a certain tolerance."""
-            return all(abs(c1 - c2) <= tolerance for c1, c2 in zip(color1, color2))
-
-        try:
-
-            # Convert coordinates to integers
-            coords = tuple(int(x) for x in coords)
-            # Convert target color to integers
-            target_color = tuple(int(x) for x in target_color)
-            # Convert tolerance to integer
-            tolerance = int(tolerance)
-
-            if len(coords) != 2:
-                raise ValueError("Coords must be a tuple of two values")
-            if len(target_color) != 3:
-                raise ValueError("Target color must be a tuple of three values")
-            if tolerance < 0:
-                raise ValueError("Tolerance must be a non-negative integer")
-
-            screenshot = image if image else self.capture_screenshot()
-            if not screenshot:
-                raise ValueError("Failed to capture screenshot")
-
-            if isinstance(screenshot, bytes):
-                with Image.open(io.BytesIO(screenshot)) as image:
-                    pixel_color = image.getpixel(coords)
-                    return check_color_with_tolerance(
-                        pixel_color, target_color, tolerance
-                    )
-            elif isinstance(screenshot, str):
-                with Image.open(screenshot) as image:
-                    pixel_color = image.getpixel(coords)
-                    return check_color_with_tolerance(
-                        pixel_color, target_color, tolerance
-                    )
-
-        except ValueError as e:
-            logger.error(f"ValueError in check_pixel_color: {e}")
-            raise ValueError(f"Error checking pixel color: {e}")
-        except Exception as e:
-            logger.error(f"Error in check_pixel_color: {e}")
-            raise ValueError(f"Error checking pixel color: {e}")
 
     def show_recent_apps(self) -> None:
         """Show the recent apps drawer"""
