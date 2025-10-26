@@ -44,7 +44,7 @@ def log_property_setter(func):
     return wrapper
 
 
-class BluepyllController(AdbDeviceTcp):
+class BluePyllController(AdbDeviceTcp):
     def __init__(
         self,
         ip: str = BluestacksConstants.DEFAULT_IP,
@@ -53,7 +53,7 @@ class BluepyllController(AdbDeviceTcp):
     ) -> None:
         port: int = self._validate_and_convert_int(port, "port")
         super().__init__(ip, port)
-        logger.info("Initializing BluepyllController")
+        logger.info("Initializing BluePyllController")
         self.img_txt_checker: ImageTextChecker = ImageTextChecker()
         self._ref_window_size: tuple[int, int] = ref_window_size
         self._filepath: str | None = None
@@ -73,7 +73,7 @@ class BluepyllController(AdbDeviceTcp):
         self._autoset_filepath()
         self.open_bluestacks()
         logger.debug(
-            f"BluepyllController initialized with the following state:\n{pprint(self.bluestacks_state)}\n"
+            f"BluePyllController initialized with the following state:\n{pprint(self.bluestacks_state)}\n"
         )
 
     def _validate_and_convert_int(self, value: int | str, param_name: str) -> int:
@@ -352,7 +352,9 @@ class BluepyllController(AdbDeviceTcp):
             bool: Whether the emulator is loading.
         """
 
-        loading_screen: tuple[int, int] | None = self.elements.bluestacks_loading_img.where()
+        loading_screen: tuple[int, int] | None = (
+            self.elements.bluestacks_loading_img.where()
+        )
         match isinstance(loading_screen, tuple):
             case True:
                 match self.bluestacks_state.current_state:
@@ -622,7 +624,6 @@ class BluepyllController(AdbDeviceTcp):
             )
             if coord:
                 return coord
-        
 
     def click_elements(
         self,
