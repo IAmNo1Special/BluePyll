@@ -170,7 +170,10 @@ controller.close_app(whatsapp)
 ### UI Interaction
 
 ```python
+from pathlib import Path
+
 from bluepyll import BluePyllController, BluePyllElement
+
 
 controller: BluePyllController = BluePyllController()
 
@@ -243,7 +246,7 @@ Configure these values in your code or modify `BluestacksConstants`:
 #### BlueStacks not found
 
 - Ensure BlueStacks is installed in default locations
-- Manually specify path: `controller.filepath = "C:\Program Files\BlueStacks_nxt\HD-Player.exe"`
+- Manually specify path: `controller.filepath = "C:/Program Files/BlueStacks_nxt/HD-Player.exe"`
 
 #### ADB connection failed
 
@@ -306,11 +309,16 @@ uv run isort src/ tests/
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes and add tests
 4. Ensure all tests pass: `uv run pytest`
-5. Format code: `uv run black src/ tests/
-6. uv run isort src/ tests/`
-7. Commit changes: `git commit -m 'Add amazing feature'`
-8. Push to branch: `git push origin feature/amazing-feature`
-9. Open a Pull Request
+5. Format code:
+
+   ```bash
+   uv run black src/ tests/
+   uv run isort src/ tests/
+   ```
+
+6. Commit changes: `git commit -m 'Add amazing feature'`
+7. Push to branch: `git push origin feature/amazing-feature`
+8. Open a Pull Request
 
 ### Areas for Contribution
 
